@@ -5,8 +5,12 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.app.Dialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.net.Uri;
@@ -23,6 +27,11 @@ public class mainActivity extends Activity {
 	
 	private static final int CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE = 100;
 	private Uri fileUri;
+	private boolean needBack = false;
+	private boolean isBack = false;
+
+	static final int DIALOG_ASKFORBACK_ID = 00;
+	static final int DIALOG_NAME_ID = 10;
 	
     /** Called when the activity is first created. */
     @Override
@@ -65,7 +74,6 @@ public class mainActivity extends Activity {
 	 */
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-		// TODO Auto-generated method stub
 		
 		if (requestCode == CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE) {
 	        if (resultCode == RESULT_OK) {
@@ -74,7 +82,16 @@ public class mainActivity extends Activity {
 	        	
 	        	//imagePathList=getImagePathFromSD();   
 	            //imagePathStringlist = imagePathList.toArray(new String[imagePathList.size()]); 
-	        	//showDialog(DIALOG_PAUSED_ID);
+	        	// TODO save to card obj.
+	        	if(!isBack){
+		        	showDialog(DIALOG_ASKFORBACK_ID);
+	        	}
+	        	else{
+    	        	showDialog(DIALOG_NAME_ID);
+                	needBack = false;
+                	isBack = false;
+	        	}
+	        	
 
 	        	//myImageAdapter.notifyDataSetChanged();
 
@@ -122,5 +139,61 @@ public class mainActivity extends Activity {
 	        "IMG_"+ timeStamp + ".jpg");
 
 	    return mediaFile;
+	}
+	protected Dialog onCreateDialog(int id) {
+	    Dialog dialog=null;
+	    switch(id) {
+	    case DIALOG_ASKFORBACK_ID:
+	        // do the work to define the isback Dialog
+	    	return new AlertDialog.Builder(mainActivity.this)
+            //.setIcon(R.drawable.alert_dialog_icon)
+	    	.setMessage("想拍反面吗？")
+  	        .setCancelable(false)
+            .setTitle("提示")
+            .setPositiveButton("想", new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int whichButton) {
+                	needBack = true;
+                	isBack = true;
+                	// TODO save to card object.
+                	Intent Cameraintent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        		    fileUri = getOutputMediaFileUri();
+        		    Cameraintent.putExtra(MediaStore.EXTRA_OUTPUT, fileUri); // set the image file name
+        		    // start the image capture Intent
+        		    startActivityForResult(Cameraintent, CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE);
+                }
+            })
+            .setNegativeButton("不想", new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int whichButton) {
+                	needBack = false;
+    	        	showDialog(DIALOG_NAME_ID);
+
+                }
+            })
+            .create();
+	    case DIALOG_NAME_ID:
+	    	// This example shows how to add a custom layout to an AlertDialog
+            LayoutInflater factory = LayoutInflater.from(this);
+            final View textEntryView = factory.inflate(R.layout.alert_dialog_text_entry, null);
+            return new AlertDialog.Builder(mainActivity.this)
+                //.setIconAttribute(android.R.attr.alertDialogIcon)
+                .setTitle("提示")
+                .setView(textEntryView)
+                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int whichButton) {
+
+                        /* User clicked OK so do some stuff */
+                    }
+                })
+                .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int whichButton) {
+
+                        /* User clicked cancel so do some stuff */
+                    }
+                })
+                .create();
+	    default:
+	        dialog = null;
+	    }
+	    return dialog;
 	}
 }
