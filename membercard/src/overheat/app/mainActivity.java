@@ -4,11 +4,14 @@ import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import sqlite3.db.DatabaseHelper;
+
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -19,7 +22,6 @@ import android.os.Environment;
 import android.provider.MediaStore;
 import android.widget.ImageView;
 import android.widget.Toast;
-import android.os.Environment;
 
 
 public class mainActivity extends Activity {
@@ -38,6 +40,9 @@ public class mainActivity extends Activity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
+        
+        DatabaseHelper dbHelper = new DatabaseHelper(mainActivity.this, "huiyuanka_db");
+        SQLiteDatabase db = dbHelper.getWritableDatabase();
         
         plusButton = (ImageView)findViewById(R.id.plusbutton);
         plusButton.setOnClickListener(new OnClickPlusListener());
