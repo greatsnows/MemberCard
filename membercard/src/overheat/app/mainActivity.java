@@ -201,6 +201,7 @@ public class mainActivity extends Activity {
                         SQLiteDatabase db = dbHelper.getWritableDatabase();
                         ContentValues cv=new ContentValues(); 
                         cv.put("name", card.getName()); 
+
                         cv.put("font", card.getFace()); 
                         cv.put("back", card.getBack()); 
 
