@@ -5,10 +5,12 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import sqlite3.db.DatabaseHelper;
+import overheat.app.Cards;
 
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.content.ContentValues;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.sqlite.SQLiteDatabase;
@@ -20,6 +22,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Toast;
 
@@ -35,14 +38,16 @@ public class mainActivity extends Activity {
 	static final int DIALOG_ASKFORBACK_ID = 00;
 	static final int DIALOG_NAME_ID = 10;
 	
+	Cards card = new Cards();
+	
     /** Called when the activity is first created. */
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
         
-        DatabaseHelper dbHelper = new DatabaseHelper(mainActivity.this, "huiyuanka_db");
-        SQLiteDatabase db = dbHelper.getWritableDatabase();
+        //DatabaseHelper dbHelper = new DatabaseHelper(mainActivity.this, "huiyuanka_db");
+        //SQLiteDatabase db = dbHelper.getWritableDatabase();
         
         plusButton = (ImageView)findViewById(R.id.plusbutton);
         plusButton.setOnClickListener(new OnClickPlusListener());
@@ -84,14 +89,16 @@ public class mainActivity extends Activity {
 	        if (resultCode == RESULT_OK) {
 	            // Image captured and saved to fileUri specified in the Intent
 	        	
-	        	
 	        	//imagePathList=getImagePathFromSD();   
 	            //imagePathStringlist = imagePathList.toArray(new String[imagePathList.size()]); 
 	        	// TODO save to card obj.
 	        	if(!isBack){
+	        		card.setFace(fileUri.toString());
+	        		card.setBack("null");
 		        	showDialog(DIALOG_ASKFORBACK_ID);
 	        	}
 	        	else{
+	        		card.setBack(fileUri.toString());
     	        	showDialog(DIALOG_NAME_ID);
                 	needBack = false;
                 	isBack = false;
@@ -187,11 +194,22 @@ public class mainActivity extends Activity {
                     public void onClick(DialogInterface dialog, int whichButton) {
 
                         /* User clicked OK so do some stuff */
+                    	EditText editName = (EditText)textEntryView.findViewById(R.id.name_edit);
+                    	card.setName(editName.getText().toString());
+                    	
+                        DatabaseHelper dbHelper = new DatabaseHelper(mainActivity.this, "huiyuanka_db");
+                        SQLiteDatabase db = dbHelper.getWritableDatabase();
+                        ContentValues cv=new ContentValues(); 
+                        cv.put("name", card.getName()); 
+                        cv.put("font", card.getFace()); 
+                        cv.put("back", card.getBack()); 
+
+                        db.insert("cards", null, cv); 
                     }
                 })
                 .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int whichButton) {
-
+                    		card = null;
                         /* User clicked cancel so do some stuff */
                     }
                 })
