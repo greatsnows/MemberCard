@@ -68,7 +68,8 @@ public class subContentActivity extends Activity{
 	    public View getView(int position, View convertView, ViewGroup parent) {
 	        ImageView imageView = new ImageView(mContext);
 
-	        imageView.setImageResource(R.drawable.content_new);
+	        imageView.setImageResource(R.drawable.plus_icon);
+	        
 	        imageView.setLayoutParams(new Gallery.LayoutParams(300, 200));
 	        imageView.setScaleType(ImageView.ScaleType.FIT_XY);
 	        imageView.setBackgroundResource(mGalleryItemBackground);

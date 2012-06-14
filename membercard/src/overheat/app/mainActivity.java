@@ -7,12 +7,9 @@ import java.util.Date;
 import java.util.List;
 
 import sqlite3.db.DatabaseHelper;
-import overheat.UI.R;
-import overheat.UI.mainGridView;
-import overheat.UI.subContentActivity;
-import overheat.UI.mainGridView.ImageAdapter;
-import overheat.UI.mainGridView.OnClickItemListener;
+
 import overheat.app.Cards;
+import overheat.app.subContentActivity;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -47,7 +44,7 @@ public class mainActivity extends Activity {
 	private ImageView plusButton;
 	
 	private static final int CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE = 100;
-	private Uri fileUri;
+	private File filePath;
 	private boolean needBack = false;
 	private boolean isBack = false;
 
@@ -56,18 +53,18 @@ public class mainActivity extends Activity {
 	
 	Cards card = new Cards();
 	
-	private ImageAdapter myImageAdapter;
+	private GVImageAdapter myGVImageAdapter;
 	
 	private List<String> imagePathList;
 	public String[] imagePathStringlist;
-	
+    private DatabaseHelper dbHelper = new DatabaseHelper(mainActivity.this, "huiyuanka_db");
+
     /** Called when the activity is first created. */
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
         
-        //DatabaseHelper dbHelper = new DatabaseHelper(mainActivity.this, "huiyuanka_db");
         //SQLiteDatabase db = dbHelper.getWritableDatabase();
         
         plusButton = (ImageView)findViewById(R.id.plusbutton);
@@ -77,17 +74,14 @@ public class mainActivity extends Activity {
         imagePathStringlist = imagePathList.toArray(new String[imagePathList.size()]);
       //GridView
         GridView gridview = (GridView) findViewById(R.id.gridview);
-        
-        myImageAdapter = new ImageAdapter(this);
-        gridview.setAdapter(myImageAdapter);
-
-        
+        myGVImageAdapter = new GVImageAdapter(this);
+        gridview.setAdapter(myGVImageAdapter);
         gridview.setOnItemClickListener(new OnClickItemListener());
         
         
     }
     /*
-     * GridView 的ItemListener.
+     * GridView 的ItemListener,用于启动gallery。
      */
     class  OnClickItemListener implements OnItemClickListener{
         public void onItemClick(AdapterView<?> parent, View v, int position, long id) {
@@ -103,33 +97,21 @@ public class mainActivity extends Activity {
     /*
      * Grid View的数据 adapter
      */
-    public class ImageAdapter extends BaseAdapter {
+    public class GVImageAdapter extends BaseAdapter {
         private Context mContext;
 
-        public ImageAdapter(Context c) {
+        public GVImageAdapter(Context c) {
             mContext = c;
         }
 
         public int getCount() {
-        	DatabaseHelper dbHelper = new DatabaseHelper(mainActivity.this, "huiyuanka_db");
-            SQLiteDatabase db = dbHelper.getReadableDatabase();
-
-            // 调用SQLiteDatabase对象的query方法进行查询，返回一个Cursor对象：由数据库查询返回的结果集对象
-            // 第一个参数String：表名
-            // 第二个参数String[]:要查询的列名
-            // 第三个参数String：查询条件
-            // 第四个参数String[]：查询条件的参数
-            // 第五个参数String:对查询的结果进行分组
-            // 第六个参数String：对分组的结果进行限制
-            // 第七个参数String：对查询的结果进行排序
-            Cursor cursor = db.query("cards", new String[] { "id",
-              "name" }, "id=?", new String[] { "1" }, null, null, null);
-            // 将光标移动到下一行，从而判断该结果集是否还有下一条数据，如果有则返回true，没有则返回false
-            cursor.moveToLast();
-            String id = null;
-            id = cursor.getString(cursor.getColumnIndex("id"));
-            int intValue = Integer.valueOf(id);
-            return intValue;
+            /*SQLiteDatabase db = dbHelper.getReadableDatabase();
+            long id = db.compileStatement(
+                    "SELECT COUNT(*) FROM CARDS")
+                    .simpleQueryForLong();
+             */
+        	
+            return imagePathStringlist.length;
         }
 
         public Object getItem(int position) {
@@ -142,23 +124,30 @@ public class mainActivity extends Activity {
 
         // create a new ImageView for each item referenced by the Adapter
         public View getView(int position, View convertView, ViewGroup parent) {
-            ImageView imageView;
+            ImageView GridimageView;
             if (convertView == null) {  // if it's not recycled, initialize some attributes
-                imageView = new ImageView(mContext);
-                imageView.setLayoutParams(new GridView.LayoutParams(85, 85));
-                imageView.setScaleType(ImageView.ScaleType.FIT_XY);
-                imageView.setPadding(8, 8, 8, 8);
+            	GridimageView = new ImageView(mContext);
+            	GridimageView.setLayoutParams(new GridView.LayoutParams(85, 85));
+            	GridimageView.setScaleType(ImageView.ScaleType.FIT_XY);
+            	GridimageView.setPadding(8, 8, 8, 8);
             } else {
-                imageView = (ImageView) convertView;
+            	GridimageView = (ImageView) convertView;
             }
 
             /* 设定图片给imageView对象 */  
             BitmapFactory.Options opts = new BitmapFactory.Options();
             opts.inSampleSize = 4;
             //opts.inJustDecodeBounds = true;
+            System.out.println("BitmapFactory.decodeFile is "+ imagePathStringlist[position]);
+            Bitmap bm = BitmapFactory.decodeFile(imagePathStringlist[position], opts);
+            if(BitmapFactory.decodeFile(imagePathStringlist[position].toString(), opts) != null)
+            	{
+            		System.out.println("decodeFile is ok!");
+            	}
+            else{
+        			System.out.println("decodeFile is fail!");
 
-            Bitmap bm = BitmapFactory.decodeFile(imagePathStringlist[position].toString(), opts);
-            
+            	}
             //opts.inSampleSize = computeSampleSize(opts, -1, 128*128);
             /*opts.inJustDecodeBounds = false;
             try {
@@ -166,9 +155,9 @@ public class mainActivity extends Activity {
             	imageView.setImageBitmap(bmp);
                 } catch (OutOfMemoryError err) {
             }*/
-            imageView.setImageBitmap(bm);
+            GridimageView.setImageBitmap(bm);
             //imageView.setImageResource(mThumbIds[position]);
-            return imageView;
+            return GridimageView;
         }
 
     }
@@ -178,15 +167,34 @@ public class mainActivity extends Activity {
 	private List<String> getImagePathFromDB(){
 		
 		List<String> it = new ArrayList<String>(); 
-		
+		//TODO
+		//DatabaseHelper dbHelper = new DatabaseHelper(mainActivity.this, "huiyuanka_db");
+        SQLiteDatabase db = dbHelper.getReadableDatabase();
+        
+        Cursor cursor = db.query("cards", new String[] { "id",
+        "face" }, null, null, null, null, null);
+        // 将光标移动到下一行，从而判断该结果集是否还有下一条数据，如果有则返回true，没有则返回false
+        String id = null;
+        String facePath = null;
+        int i = 0;
+        System.out.println("getImagePathFromDB ");
+
+        //String name = null;
+        while (cursor.moveToNext()) {
+            id = cursor.getString(cursor.getColumnIndex("id"));
+            facePath = cursor.getString(cursor.getColumnIndex("face"));
+            System.out.println("face path is " + facePath);
+            it.add(facePath);
+           }
+        /*
 		File mediaStorageDir = new File(Environment.getExternalStoragePublicDirectory(
 	              Environment.DIRECTORY_PICTURES), "MyCameraApp");
 		File[] files = mediaStorageDir.listFiles();
 		for (int i = 0; i < files.length; i++) {  
             File file = files[i];  
-            if (checkIsImageFile(file.getPath()))  
-                it.add(file.getPath());  
-        }  
+            
+            it.add(file.getPath());  
+        }  */
 		return it;  
 	}
     /*
@@ -202,8 +210,10 @@ public class mainActivity extends Activity {
 			String state = Environment.getExternalStorageState();		    
 		    if(Environment.MEDIA_MOUNTED.equals(state)){
 		    	Intent Cameraintent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-		    	fileUri = getOutputMediaFileUri();
-			    Cameraintent.putExtra(MediaStore.EXTRA_OUTPUT, fileUri); // set the image file name
+		    	//fileUri = getOutputMediaFileUri();
+		    	filePath = getOutputMediaFile();
+		    	System.out.println("putExtra "+Uri.fromFile(filePath).toString());
+			    Cameraintent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(filePath)); // set the image file name
 			    // start the image capture Intent
 			    startActivityForResult(Cameraintent, CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE);
 		    }
@@ -229,20 +239,16 @@ public class mainActivity extends Activity {
 	            //imagePathStringlist = imagePathList.toArray(new String[imagePathList.size()]); 
 	        	// TODO save to card obj.
 	        	if(!isBack){
-	        		card.setFace(fileUri.toString());
+	        		card.setFace(filePath.toString());
 	        		card.setBack("null");
 		        	showDialog(DIALOG_ASKFORBACK_ID);
 	        	}
 	        	else{
-	        		card.setBack(fileUri.toString());
+	        		card.setBack(filePath.toString());
     	        	showDialog(DIALOG_NAME_ID);
                 	needBack = false;
                 	isBack = false;
 	        	}
-	        	
-
-	        	//myImageAdapter.notifyDataSetChanged();
-
 	            //Toast.makeText(this, "notifyDataSetChanged" + imagePathStringlist.length, Toast.LENGTH_LONG).show();
 	        } else if (resultCode == RESULT_CANCELED) {
 	            // User cancelled the image capture
@@ -256,12 +262,6 @@ public class mainActivity extends Activity {
 	/*
 	 * Save Media file by date format
 	 */
-	
-	/** Create a file Uri for saving an image or video */
-	private static Uri getOutputMediaFileUri(){
-	      return Uri.fromFile(getOutputMediaFile());
-	}
-
 	/** Create a File for saving an image */
 	private static File getOutputMediaFile(){
 	    // To be safe, you should check that the SDCard is mounted
@@ -304,8 +304,9 @@ public class mainActivity extends Activity {
                 	isBack = true;
                 	// TODO save to card object.
                 	Intent Cameraintent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-        		    fileUri = getOutputMediaFileUri();
-        		    Cameraintent.putExtra(MediaStore.EXTRA_OUTPUT, fileUri); // set the image file name
+        		    //fileUri = getOutputMediaFileUri();
+        		    filePath = getOutputMediaFile();
+        		    Cameraintent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(filePath)); // set the image file name
         		    // start the image capture Intent
         		    startActivityForResult(Cameraintent, CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE);
                 }
@@ -333,15 +334,23 @@ public class mainActivity extends Activity {
                     	EditText editName = (EditText)textEntryView.findViewById(R.id.name_edit);
                     	card.setName(editName.getText().toString());
                     	
-                        DatabaseHelper dbHelper = new DatabaseHelper(mainActivity.this, "huiyuanka_db");
+                        //DatabaseHelper dbHelper = new DatabaseHelper(mainActivity.this, "huiyuanka_db");
                         SQLiteDatabase db = dbHelper.getWritableDatabase();
                         ContentValues cv=new ContentValues(); 
                         cv.put("name", card.getName()); 
 
-                        cv.put("font", card.getFace()); 
+                        
+                        cv.put("face", card.getFace()); 
                         cv.put("back", card.getBack()); 
 
                         db.insert("cards", null, cv); 
+                        
+                        imagePathList=getImagePathFromDB();   
+                        imagePathStringlist = imagePathList.toArray(new String[imagePathList.size()]);
+                        
+                        //notify
+                        myGVImageAdapter.notifyDataSetChanged();
+
                     }
                 })
                 .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
@@ -356,4 +365,12 @@ public class mainActivity extends Activity {
 	    }
 	    return dialog;
 	}
+
+	@Override
+	protected void onDestroy() {
+		// TODO Auto-generated method stub
+		dbHelper.close();
+		super.onDestroy();
+	}
+	
 }
