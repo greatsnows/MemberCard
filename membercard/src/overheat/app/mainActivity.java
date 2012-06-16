@@ -51,7 +51,7 @@ public class mainActivity extends Activity {
 	static final int DIALOG_ASKFORBACK_ID = 00;
 	static final int DIALOG_NAME_ID = 10;
 	
-	Cards card = new Cards();
+	Cards tmpCard = new Cards();
 	
 	private GVImageAdapter myGVImageAdapter;
 	
@@ -71,6 +71,20 @@ public class mainActivity extends Activity {
         plusButton.setOnClickListener(new OnClickPlusListener());
         
         imagePathList=getImagePathFromDB();   
+       /* System.out.println("1 is " + imagePathList.get(0).getFace());
+        System.out.println("1b is " + imagePathList.get(0).getBack());
+        System.out.println("2 is " + imagePathList.get(1).getFace());
+        System.out.println("2b is " + imagePathList.get(1).getBack());
+        System.out.println("3 is " + imagePathList.get(2).getFace());
+        System.out.println("3b is " + imagePathList.get(2).getBack());
+        System.out.println("4 is " + imagePathList.get(3).getFace());
+        System.out.println("4b is " + imagePathList.get(3).getBack());
+        System.out.println("5 is " + imagePathList.get(4).getFace());
+        System.out.println("5b is " + imagePathList.get(4).getBack());*/
+        
+        
+        
+        
         //imagePathStringlist = imagePathList.toArray(new String[imagePathList.size()]);
       //GridView
         GridView gridview = (GridView) findViewById(R.id.gridview);
@@ -91,7 +105,8 @@ public class mainActivity extends Activity {
         	GridViewintent.putExtra("position", position); 
         	GridViewintent.putExtra("face", imagePathList.get(position).getFace()); 
         	GridViewintent.putExtra("back", imagePathList.get(position).getBack()); 
-
+            System.out.println("putExtra face path is " + imagePathList.get(position).getFace());
+            System.out.println("putExtra back path is " + imagePathList.get(position).getBack());
             startActivity(GridViewintent);  
             
             //Toast.makeText(HelloGridView.this, "" + position, Toast.LENGTH_SHORT).show();
@@ -132,7 +147,7 @@ public class mainActivity extends Activity {
             ImageView GridimageView;
             if (convertView == null) {  // if it's not recycled, initialize some attributes
             	GridimageView = new ImageView(mContext);
-            	GridimageView.setLayoutParams(new GridView.LayoutParams(85, 85));
+            	GridimageView.setLayoutParams(new GridView.LayoutParams(160, 120));
             	GridimageView.setScaleType(ImageView.ScaleType.FIT_XY);
             	GridimageView.setPadding(8, 8, 8, 8);
             } else {
@@ -146,16 +161,16 @@ public class mainActivity extends Activity {
             //opts.inJustDecodeBounds = true;
             Cards card = new Cards();
             card = imagePathList.get(position);
-            //System.out.println("BitmapFactory.decodeFile is "+ imagePathStringlist[position]);
+            System.out.println("decodeFile " + position+" is "+ card.getFace());
             Bitmap bm = BitmapFactory.decodeFile(card.getFace(), opts);
-            if(BitmapFactory.decodeFile(card.getFace(), opts) != null)
+            /*if(BitmapFactory.decodeFile(card.getFace(), opts) != null)
             	{
             		System.out.println("decodeFile is ok!");
             	}
             else{
         			System.out.println("decodeFile is fail!");
 
-            	}
+            	}*/
             //opts.inSampleSize = computeSampleSize(opts, -1, 128*128);
             /*opts.inJustDecodeBounds = false;
             try {
@@ -175,7 +190,7 @@ public class mainActivity extends Activity {
 	private List<Cards> getImagePathFromDB(){
 		
 		List<Cards> it = new ArrayList<Cards>(); 
-		Cards card = new Cards();
+		
 		//TODO
 		//DatabaseHelper dbHelper = new DatabaseHelper(mainActivity.this, "huiyuanka_db");
         SQLiteDatabase db = dbHelper.getReadableDatabase();
@@ -192,15 +207,18 @@ public class mainActivity extends Activity {
 
         //String name = null;
         while (cursor.moveToNext()) {
-        	card.setName(cursor.getString(cursor.getColumnIndex("name")));
-        	card.setFace(cursor.getString(cursor.getColumnIndex("face")));
-        	card.setBack(cursor.getString(cursor.getColumnIndex("back")));
+        	Cards newCard = new Cards();
+        	newCard.setName(cursor.getString(cursor.getColumnIndex("name")));
+        	newCard.setFace(cursor.getString(cursor.getColumnIndex("face")));
+        	newCard.setBack(cursor.getString(cursor.getColumnIndex("back")));
 
             //facePath = cursor.getString(cursor.getColumnIndex("face"));
             //facePath = cursor.getString(cursor.getColumnIndex("back"));
 
-            //System.out.println("face path is " + facePath);
-            it.add(card);
+            System.out.println("newcard's face path is " + newCard.getFace());
+            System.out.println("newcard's back path is " + newCard.getBack());
+
+            it.add(newCard);
            }
         /*
 		File mediaStorageDir = new File(Environment.getExternalStoragePublicDirectory(
@@ -255,12 +273,12 @@ public class mainActivity extends Activity {
 	            //imagePathStringlist = imagePathList.toArray(new String[imagePathList.size()]); 
 	        	// TODO save to card obj.
 	        	if(!isBack){
-	        		card.setFace(filePath.toString());
-	        		card.setBack("null");
+	        		tmpCard.setFace(filePath.toString());
+	        		tmpCard.setBack("null");
 		        	showDialog(DIALOG_ASKFORBACK_ID);
 	        	}
 	        	else{
-	        		card.setBack(filePath.toString());
+	        		tmpCard.setBack(filePath.toString());
     	        	showDialog(DIALOG_NAME_ID);
                 	needBack = false;
                 	isBack = false;
@@ -348,16 +366,16 @@ public class mainActivity extends Activity {
 
                         /* User clicked OK so do some stuff */
                     	EditText editName = (EditText)textEntryView.findViewById(R.id.name_edit);
-                    	card.setName(editName.getText().toString());
+                    	tmpCard.setName(editName.getText().toString());
                     	
                         //DatabaseHelper dbHelper = new DatabaseHelper(mainActivity.this, "huiyuanka_db");
                         SQLiteDatabase db = dbHelper.getWritableDatabase();
                         ContentValues cv=new ContentValues(); 
-                        cv.put("name", card.getName()); 
+                        cv.put("name", tmpCard.getName()); 
 
                         
-                        cv.put("face", card.getFace()); 
-                        cv.put("back", card.getBack()); 
+                        cv.put("face", tmpCard.getFace()); 
+                        cv.put("back", tmpCard.getBack()); 
 
                         db.insert("cards", null, cv); 
                         
@@ -371,7 +389,7 @@ public class mainActivity extends Activity {
                 })
                 .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int whichButton) {
-                    		card = null;
+                    	tmpCard = null;
                         /* User clicked cancel so do some stuff */
                     }
                 })
