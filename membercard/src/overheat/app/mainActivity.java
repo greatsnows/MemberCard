@@ -101,7 +101,7 @@ public class mainActivity extends Activity {
         public void onItemClick(AdapterView<?> parent, View v, int position, long id) {
         	
         	Intent GridViewintent = new Intent();  
-        	GridViewintent.setClass(mainActivity.this, subContentActivity.class);  
+        	GridViewintent.setClass(mainActivity.this, VPActivity.class);  
         	GridViewintent.putExtra("position", position); 
         	GridViewintent.putExtra("face", imagePathList.get(position).getFace()); 
         	GridViewintent.putExtra("back", imagePathList.get(position).getBack()); 
@@ -360,6 +360,7 @@ public class mainActivity extends Activity {
             return new AlertDialog.Builder(mainActivity.this)
                 //.setIconAttribute(android.R.attr.alertDialogIcon)
                 .setTitle("ÌבÊ¾")
+                .setCancelable(false)
                 .setView(textEntryView)
                 .setPositiveButton("OK", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int whichButton) {

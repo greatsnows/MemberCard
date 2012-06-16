@@ -24,6 +24,10 @@
             android:name=".subContentActivity" 
             android:label="gellary"       
         />
+        <activity 
+            android:name=".VPActivity" 
+            android:label="viewpager"       
+        />
     </application>
 
 </manifest>
