@@ -55,7 +55,7 @@ public class mainActivity extends Activity {
 	
 	private GVImageAdapter myGVImageAdapter;
 	
-	private List<String> imagePathList;
+	private List<Cards> imagePathList;
 	public String[] imagePathStringlist;
     private DatabaseHelper dbHelper = new DatabaseHelper(mainActivity.this, "huiyuanka_db");
 
@@ -71,7 +71,7 @@ public class mainActivity extends Activity {
         plusButton.setOnClickListener(new OnClickPlusListener());
         
         imagePathList=getImagePathFromDB();   
-        imagePathStringlist = imagePathList.toArray(new String[imagePathList.size()]);
+        //imagePathStringlist = imagePathList.toArray(new String[imagePathList.size()]);
       //GridView
         GridView gridview = (GridView) findViewById(R.id.gridview);
         myGVImageAdapter = new GVImageAdapter(this);
@@ -111,7 +111,9 @@ public class mainActivity extends Activity {
                     .simpleQueryForLong();
              */
         	
-            return imagePathStringlist.length;
+            //return imagePathStringlist.length;
+            return imagePathList.size();
+
         }
 
         public Object getItem(int position) {
@@ -137,10 +139,13 @@ public class mainActivity extends Activity {
             /* 设定图片给imageView对象 */  
             BitmapFactory.Options opts = new BitmapFactory.Options();
             opts.inSampleSize = 4;
+            //opts.
             //opts.inJustDecodeBounds = true;
-            System.out.println("BitmapFactory.decodeFile is "+ imagePathStringlist[position]);
-            Bitmap bm = BitmapFactory.decodeFile(imagePathStringlist[position], opts);
-            if(BitmapFactory.decodeFile(imagePathStringlist[position].toString(), opts) != null)
+            Cards card = new Cards();
+            card = imagePathList.get(position);
+            //System.out.println("BitmapFactory.decodeFile is "+ imagePathStringlist[position]);
+            Bitmap bm = BitmapFactory.decodeFile(card.getFace(), opts);
+            if(BitmapFactory.decodeFile(card.getFace(), opts) != null)
             	{
             		System.out.println("decodeFile is ok!");
             	}
@@ -164,27 +169,35 @@ public class mainActivity extends Activity {
     /*
      * 从db卡中取出图片
      */
-	private List<String> getImagePathFromDB(){
+	private List<Cards> getImagePathFromDB(){
 		
-		List<String> it = new ArrayList<String>(); 
+		List<Cards> it = new ArrayList<Cards>(); 
+		Cards card = new Cards();
 		//TODO
 		//DatabaseHelper dbHelper = new DatabaseHelper(mainActivity.this, "huiyuanka_db");
         SQLiteDatabase db = dbHelper.getReadableDatabase();
         
-        Cursor cursor = db.query("cards", new String[] { "id",
-        "face" }, null, null, null, null, null);
+        Cursor cursor = db.query("cards", new String[] { "name",
+        "face","back" }, null, null, null, null, null);
         // 将光标移动到下一行，从而判断该结果集是否还有下一条数据，如果有则返回true，没有则返回false
-        String id = null;
-        String facePath = null;
+        //String id = null;
+        //String facePath = null;
+        //String backPath = null;
+
         int i = 0;
         System.out.println("getImagePathFromDB ");
 
         //String name = null;
         while (cursor.moveToNext()) {
-            id = cursor.getString(cursor.getColumnIndex("id"));
-            facePath = cursor.getString(cursor.getColumnIndex("face"));
-            System.out.println("face path is " + facePath);
-            it.add(facePath);
+        	card.setName(cursor.getString(cursor.getColumnIndex("name")));
+        	card.setFace(cursor.getString(cursor.getColumnIndex("face")));
+        	card.setBack(cursor.getString(cursor.getColumnIndex("back")));
+
+            //facePath = cursor.getString(cursor.getColumnIndex("face"));
+            //facePath = cursor.getString(cursor.getColumnIndex("back"));
+
+            //System.out.println("face path is " + facePath);
+            it.add(card);
            }
         /*
 		File mediaStorageDir = new File(Environment.getExternalStoragePublicDirectory(
@@ -346,7 +359,7 @@ public class mainActivity extends Activity {
                         db.insert("cards", null, cv); 
                         
                         imagePathList=getImagePathFromDB();   
-                        imagePathStringlist = imagePathList.toArray(new String[imagePathList.size()]);
+                        //imagePathStringlist = imagePathList.toArray(new String[imagePathList.size()]);
                         
                         //notify
                         myGVImageAdapter.notifyDataSetChanged();
