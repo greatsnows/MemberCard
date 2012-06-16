@@ -55,8 +55,8 @@ public class mainActivity extends Activity {
 	
 	private GVImageAdapter myGVImageAdapter;
 	
-	private List<Cards> imagePathList;
-	public String[] imagePathStringlist;
+	public List<Cards> imagePathList;
+	//public String[] imagePathStringlist;
     private DatabaseHelper dbHelper = new DatabaseHelper(mainActivity.this, "huiyuanka_db");
 
     /** Called when the activity is first created. */
@@ -88,7 +88,10 @@ public class mainActivity extends Activity {
         	
         	Intent GridViewintent = new Intent();  
         	GridViewintent.setClass(mainActivity.this, subContentActivity.class);  
-        	GridViewintent.putExtra("position", position);  
+        	GridViewintent.putExtra("position", position); 
+        	GridViewintent.putExtra("face", imagePathList.get(position).getFace()); 
+        	GridViewintent.putExtra("back", imagePathList.get(position).getBack()); 
+
             startActivity(GridViewintent);  
             
             //Toast.makeText(HelloGridView.this, "" + position, Toast.LENGTH_SHORT).show();
