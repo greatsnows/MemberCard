@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+
 import sqlite3.db.DatabaseHelper;
 
 import overheat.app.Cards;
@@ -23,8 +24,12 @@ import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.util.Log;
+import android.view.ContextMenu;
+import android.view.ContextMenu.ContextMenuInfo;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
+import android.view.View.OnLongClickListener;
 import android.view.ViewGroup;
 import android.view.View.OnClickListener;
 import android.net.Uri;
@@ -36,6 +41,7 @@ import android.widget.BaseAdapter;
 import android.widget.EditText;
 import android.widget.GridView;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.AdapterView.OnItemClickListener;
 
@@ -51,6 +57,9 @@ public class mainActivity extends Activity {
 	static final int DIALOG_ASKFORBACK_ID = 00;
 	static final int DIALOG_NAME_ID = 10;
 	
+	private final static int MENU_DELETE = 1;
+	private final static int MENU_ABOUT = 5;
+
 	Cards tmpCard = new Cards();
 	
 	private GVImageAdapter myGVImageAdapter;
@@ -91,7 +100,8 @@ public class mainActivity extends Activity {
         myGVImageAdapter = new GVImageAdapter(this);
         gridview.setAdapter(myGVImageAdapter);
         gridview.setOnItemClickListener(new OnClickItemListener());
-        
+        //gridview.setOnLongClickListener(new LongClickListener());
+        registerForContextMenu(gridview);
         
     }
     /*
@@ -111,7 +121,9 @@ public class mainActivity extends Activity {
             
             //Toast.makeText(HelloGridView.this, "" + position, Toast.LENGTH_SHORT).show();
         }
+        
     }
+
     /*
      * Grid View的数据 adapter
      */
@@ -184,6 +196,7 @@ public class mainActivity extends Activity {
         }
 
     }
+    
     /*
      * 从db卡中取出图片
      */
@@ -401,6 +414,38 @@ public class mainActivity extends Activity {
 	    return dialog;
 	}
 
+	/* (non-Javadoc)
+	 * @see android.app.Activity#onContextItemSelected(android.view.MenuItem)
+	 */
+	@Override
+	public boolean onContextItemSelected(MenuItem item) {
+		// TODO Auto-generated method stub
+		switch (item.getItemId()) {
+		case MENU_DELETE:
+            Toast.makeText(mainActivity.this, "MENU_DELETE happen!", Toast.LENGTH_SHORT).show();
+			break;
+		case MENU_ABOUT:
+            Toast.makeText(mainActivity.this, "MENU_ABOUT happen!", Toast.LENGTH_SHORT).show();
+			break;
+		}
+		return true;
+		//return super.onContextItemSelected(item);
+	}
+	/* (non-Javadoc)
+	 * @see android.app.Activity#onCreateContextMenu(android.view.ContextMenu, android.view.View, android.view.ContextMenu.ContextMenuInfo)
+	 */
+	@Override
+	public void onCreateContextMenu(ContextMenu menu, View v,
+			ContextMenuInfo menuInfo) {
+		// TODO Auto-generated method stub
+		//String title = ((TextView) info.targetView.findViewById(R.id.content_001)).getText().toString();  
+        menu.setHeaderTitle("菜单");  
+        menu.add(0, MENU_DELETE, 0, "删除");  
+        menu.add(0, MENU_ABOUT, 0, "关于");  
+        //menu.add(0, MENU_GROUP_MODIFY, 0, "重命名");  
+        //menu.add(0, MENU_GROUP_ADDCONTACT, 0, "添加联系人"); 
+		//super.onCreateContextMenu(menu, v, menuInfo);
+	}
 	@Override
 	protected void onDestroy() {
 		// TODO Auto-generated method stub
