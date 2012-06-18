@@ -37,6 +37,7 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.widget.AdapterView;
+import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.BaseAdapter;
 import android.widget.EditText;
 import android.widget.GridView;
@@ -64,7 +65,7 @@ public class mainActivity extends Activity {
 	
 	private GVImageAdapter myGVImageAdapter;
 	
-	public List<Cards> imagePathList;
+	public List<Cards> myCards;
 	//public String[] imagePathStringlist;
     private DatabaseHelper dbHelper = new DatabaseHelper(mainActivity.this, "huiyuanka_db");
 
@@ -78,23 +79,10 @@ public class mainActivity extends Activity {
         
         plusButton = (ImageView)findViewById(R.id.plusbutton);
         plusButton.setOnClickListener(new OnClickPlusListener());
+        //Get Cards list.
+        myCards=getCardsFromDB();   
         
-        imagePathList=getImagePathFromDB();   
-       /* System.out.println("1 is " + imagePathList.get(0).getFace());
-        System.out.println("1b is " + imagePathList.get(0).getBack());
-        System.out.println("2 is " + imagePathList.get(1).getFace());
-        System.out.println("2b is " + imagePathList.get(1).getBack());
-        System.out.println("3 is " + imagePathList.get(2).getFace());
-        System.out.println("3b is " + imagePathList.get(2).getBack());
-        System.out.println("4 is " + imagePathList.get(3).getFace());
-        System.out.println("4b is " + imagePathList.get(3).getBack());
-        System.out.println("5 is " + imagePathList.get(4).getFace());
-        System.out.println("5b is " + imagePathList.get(4).getBack());*/
-        
-        
-        
-        
-        //imagePathStringlist = imagePathList.toArray(new String[imagePathList.size()]);
+        //imagePathStringlist = myCards.toArray(new String[myCards.size()]);
       //GridView
         GridView gridview = (GridView) findViewById(R.id.gridview);
         myGVImageAdapter = new GVImageAdapter(this);
@@ -113,17 +101,50 @@ public class mainActivity extends Activity {
         	Intent GridViewintent = new Intent();  
         	GridViewintent.setClass(mainActivity.this, VPActivity.class);  
         	GridViewintent.putExtra("position", position); 
-        	GridViewintent.putExtra("face", imagePathList.get(position).getFace()); 
-        	GridViewintent.putExtra("back", imagePathList.get(position).getBack()); 
-            System.out.println("putExtra face path is " + imagePathList.get(position).getFace());
-            System.out.println("putExtra back path is " + imagePathList.get(position).getBack());
+        	GridViewintent.putExtra("face", myCards.get(position).getFace()); 
+        	GridViewintent.putExtra("back", myCards.get(position).getBack()); 
+            System.out.println("putExtra face path is " + myCards.get(position).getFace());
+            System.out.println("putExtra back path is " + myCards.get(position).getBack());
             startActivity(GridViewintent);  
             
             //Toast.makeText(HelloGridView.this, "" + position, Toast.LENGTH_SHORT).show();
         }
         
     }
+    /* 
+	 * Camera 回调函数
+	 */
+	@Override
+	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+		
+		if (requestCode == CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE) {
+	        if (resultCode == RESULT_OK) {
+	            // Image captured and saved to fileUri specified in the Intent
+	        	
+	        	//myCards=getImagePathFromSD();   
+	            //imagePathStringlist = myCards.toArray(new String[myCards.size()]); 
+	        	// TODO save to card obj.
+	        	if(!isBack){
+	        		tmpCard.setFace(filePath.toString());
+	        		tmpCard.setBack("null");
+		        	showDialog(DIALOG_ASKFORBACK_ID);
+	        	}
+	        	else{
+	        		tmpCard.setBack(filePath.toString());
+    	        	showDialog(DIALOG_NAME_ID);
+                	needBack = false;
+                	isBack = false;
+	        	}
+	            //Toast.makeText(this, "notifyDataSetChanged" + imagePathStringlist.length, Toast.LENGTH_LONG).show();
+	        } else if (resultCode == RESULT_CANCELED) {
+	            // User cancelled the image capture
+	        } else {
+	            // Image capture failed, advise user
+	        	
+	        }
+	    }
 
+	}
     /*
      * Grid View的数据 adapter
      */
@@ -142,7 +163,7 @@ public class mainActivity extends Activity {
              */
         	
             //return imagePathStringlist.length;
-            return imagePathList.size();
+            return myCards.size();
 
         }
 
@@ -159,7 +180,7 @@ public class mainActivity extends Activity {
             ImageView GridimageView;
             if (convertView == null) {  // if it's not recycled, initialize some attributes
             	GridimageView = new ImageView(mContext);
-            	GridimageView.setLayoutParams(new GridView.LayoutParams(160, 120));
+            	GridimageView.setLayoutParams(new GridView.LayoutParams(120, 90));
             	GridimageView.setScaleType(ImageView.ScaleType.FIT_XY);
             	GridimageView.setPadding(8, 8, 8, 8);
             } else {
@@ -171,10 +192,10 @@ public class mainActivity extends Activity {
             opts.inSampleSize = 4;
             //opts.
             //opts.inJustDecodeBounds = true;
-            Cards card = new Cards();
-            card = imagePathList.get(position);
-            System.out.println("decodeFile " + position+" is "+ card.getFace());
-            Bitmap bm = BitmapFactory.decodeFile(card.getFace(), opts);
+            //Cards card = new Cards();
+            //card = myCards.get(position);
+            System.out.println("decodeFile " + position+" is "+ myCards.get(position).getFace());
+            Bitmap bm = BitmapFactory.decodeFile(myCards.get(position).getFace(), opts);
             /*if(BitmapFactory.decodeFile(card.getFace(), opts) != null)
             	{
             		System.out.println("decodeFile is ok!");
@@ -200,7 +221,7 @@ public class mainActivity extends Activity {
     /*
      * 从db卡中取出图片
      */
-	private List<Cards> getImagePathFromDB(){
+	private List<Cards> getCardsFromDB(){
 		
 		List<Cards> it = new ArrayList<Cards>(); 
 		
@@ -208,7 +229,7 @@ public class mainActivity extends Activity {
 		//DatabaseHelper dbHelper = new DatabaseHelper(mainActivity.this, "huiyuanka_db");
         SQLiteDatabase db = dbHelper.getReadableDatabase();
         
-        Cursor cursor = db.query("cards", new String[] { "name",
+        Cursor cursor = db.query("cards", new String[] { "_id", "name",
         "face","back" }, null, null, null, null, null);
         // 将光标移动到下一行，从而判断该结果集是否还有下一条数据，如果有则返回true，没有则返回false
         //String id = null;
@@ -216,11 +237,12 @@ public class mainActivity extends Activity {
         //String backPath = null;
 
         int i = 0;
-        System.out.println("getImagePathFromDB ");
+        System.out.println("getCardsFromDB ");
 
         //String name = null;
         while (cursor.moveToNext()) {
         	Cards newCard = new Cards();
+        	newCard.set_id(cursor.getString(cursor.getColumnIndex("_id")));
         	newCard.setName(cursor.getString(cursor.getColumnIndex("name")));
         	newCard.setFace(cursor.getString(cursor.getColumnIndex("face")));
         	newCard.setBack(cursor.getString(cursor.getColumnIndex("back")));
@@ -228,8 +250,8 @@ public class mainActivity extends Activity {
             //facePath = cursor.getString(cursor.getColumnIndex("face"));
             //facePath = cursor.getString(cursor.getColumnIndex("back"));
 
-            System.out.println("newcard's face path is " + newCard.getFace());
-            System.out.println("newcard's back path is " + newCard.getBack());
+            //System.out.println("newcard's face path is " + newCard.getFace());
+            //System.out.println("newcard's back path is " + newCard.getBack());
 
             it.add(newCard);
            }
@@ -272,40 +294,7 @@ public class mainActivity extends Activity {
 		}
     }
 
-    /* 
-	 * Camera 回调函数
-	 */
-	@Override
-	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-		
-		if (requestCode == CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE) {
-	        if (resultCode == RESULT_OK) {
-	            // Image captured and saved to fileUri specified in the Intent
-	        	
-	        	//imagePathList=getImagePathFromSD();   
-	            //imagePathStringlist = imagePathList.toArray(new String[imagePathList.size()]); 
-	        	// TODO save to card obj.
-	        	if(!isBack){
-	        		tmpCard.setFace(filePath.toString());
-	        		tmpCard.setBack("null");
-		        	showDialog(DIALOG_ASKFORBACK_ID);
-	        	}
-	        	else{
-	        		tmpCard.setBack(filePath.toString());
-    	        	showDialog(DIALOG_NAME_ID);
-                	needBack = false;
-                	isBack = false;
-	        	}
-	            //Toast.makeText(this, "notifyDataSetChanged" + imagePathStringlist.length, Toast.LENGTH_LONG).show();
-	        } else if (resultCode == RESULT_CANCELED) {
-	            // User cancelled the image capture
-	        } else {
-	            // Image capture failed, advise user
-	        	
-	        }
-	    }
 
-	}
 	/*
 	 * Save Media file by date format
 	 */
@@ -381,20 +370,17 @@ public class mainActivity extends Activity {
                         /* User clicked OK so do some stuff */
                     	EditText editName = (EditText)textEntryView.findViewById(R.id.name_edit);
                     	tmpCard.setName(editName.getText().toString());
+                    	myCards.add(tmpCard);
                     	
-                        //DatabaseHelper dbHelper = new DatabaseHelper(mainActivity.this, "huiyuanka_db");
+                        //***DB insert method begin ***//
                         SQLiteDatabase db = dbHelper.getWritableDatabase();
                         ContentValues cv=new ContentValues(); 
-                        cv.put("name", tmpCard.getName()); 
-
-                        
+                        cv.put("name", tmpCard.getName());                       
                         cv.put("face", tmpCard.getFace()); 
                         cv.put("back", tmpCard.getBack()); 
-
                         db.insert("cards", null, cv); 
-                        
-                        imagePathList=getImagePathFromDB();   
-                        //imagePathStringlist = imagePathList.toArray(new String[imagePathList.size()]);
+                        //***DB insert method end ***//
+
                         
                         //notify
                         myGVImageAdapter.notifyDataSetChanged();
@@ -420,8 +406,21 @@ public class mainActivity extends Activity {
 	@Override
 	public boolean onContextItemSelected(MenuItem item) {
 		// TODO Auto-generated method stub
+		AdapterContextMenuInfo info = (AdapterContextMenuInfo)item.getMenuInfo();
 		switch (item.getItemId()) {
 		case MENU_DELETE:
+            SQLiteDatabase db = dbHelper.getWritableDatabase();
+            db.delete("cards", "_id=?", new String[]{String.valueOf(myCards.get(info.position).get_id())});
+
+            myCards.remove(info.position);
+
+            System.out.println("row id is " + info.id);
+            System.out.println("position is " + info.position);
+            
+
+            //myCards=getCardsFromDB();   
+            myGVImageAdapter.notifyDataSetChanged();
+
             Toast.makeText(mainActivity.this, "MENU_DELETE happen!", Toast.LENGTH_SHORT).show();
 			break;
 		case MENU_ABOUT:
@@ -438,6 +437,8 @@ public class mainActivity extends Activity {
 	public void onCreateContextMenu(ContextMenu menu, View v,
 			ContextMenuInfo menuInfo) {
 		// TODO Auto-generated method stub
+		//AdapterContextMenuInfo info = (AdapterContextMenuInfo)menuInfo;
+		//info.
 		//String title = ((TextView) info.targetView.findViewById(R.id.content_001)).getText().toString();  
         menu.setHeaderTitle("菜单");  
         menu.add(0, MENU_DELETE, 0, "删除");  

@@ -24,13 +24,13 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 		// TODO Auto-generated method stub
 		System.out.println("create a Database");
 		//execSQL函数用于执行SQL语句
-		db.execSQL("create table cards(id int,name narchar(20),face varchar(40),back varchar(40))");
+		db.execSQL("create table cards(_id INTEGER PRIMARY KEY,name narchar(20),face varchar(40),back varchar(40))");
 	}
 
 	@Override
 	public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
 		// TODO Auto-generated method stub
-		System.out.println("Create a datebase！");
+		System.out.println("Upgrade a datebase！");
 
 	}
 }

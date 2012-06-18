@@ -41,14 +41,6 @@ public class VPActivity extends Activity{
 	    //myAdapter.change(getList());  
 	}  
 	  
-	/*private List<String> getList() {  
-	    List<String> list = new ArrayList<String>();  
-	    list.add("file:///sdcard/Sunset.jpg");  
-	    list.add("file:///sdcard/Winter.jpg");  
-	    list.add("file:///sdcard/Water lilies.jpg");  
-	    list.add("file:///sdcard/Blue hills.jpg");  
-	    return list;  
-	}  */
 	public class VPAdapter extends PagerAdapter {  
 		  
 	    //private List<String> mPaths;  

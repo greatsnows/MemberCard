@@ -2,10 +2,24 @@ package overheat.app;
 
 
 public class Cards{
+	private String _id;
 	private String name;
 	private String number;
 	private String face;
 	private String back;
+	/**
+     * @return the card's name
+     */
+    public String get_id() {
+        return _id;
+    }
+
+    /**
+     * @param name the name to set
+     */
+    public void set_id(String _id) {
+        this._id = _id;
+    }
 	/**
      * @return the card's name
      */
